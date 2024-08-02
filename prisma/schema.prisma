@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model PopularSongs {
+  id                   String @id @default(auto()) @map("_id") @db.ObjectId
+  track                String
+  albumName            String
+  artist               String
+  allTimeRank          Float
+  trackScore           Float
+  spotifyPlaylistCount Float
+  spotifyPlaylistReach Float
+  spotifyPopularity    Float
+  youtubeViews         Float
+  youtubeLikes         Float
+  tiktokPosts          Float
+  tiktokLikes          Float
+  tiktokViews          Float
+  youtubePlaylistReach Float
+  appleMusicPlaylistCount Float
+  airplaySpins         Float
+  siriusxmSpins        Float
+  deezerPlaylistCount  Float
+  deezerPlaylistReach  Float
+  amazonPlaylistCount  Float
+  pandoraStreams        Float
+  pandoraTrackStations  Float
+  soundcloudStreams     Float
+  shazamCounts         Float
+  explicitTrack        Float
+  categoryColor        String
+  categoryNodeColor    String
+}

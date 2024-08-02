@@ -1,0 +1,22 @@
+services:
+  spotify-mongo-db:
+    image: mongo
+    container_name: spotify-mongo-db
+    volumes:
+      - spotify-mongo-db:/data/db
+    ports:
+      - 27017:27017
+
+  mongo-express:
+    image: mongo-express
+    depends_on:
+      - spotify-mongo-db
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=spotify-mongo-db
+      - ME_CONFIG_BASICAUTH_USERNAME=mongo
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
+    ports:
+      - 8081:8081
+
+volumes:
+  spotify-mongo-db:
