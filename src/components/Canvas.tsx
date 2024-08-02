@@ -3,21 +3,27 @@
 import { useEffect, useRef, useState } from "react"
 import { Circle, Canvas as FabricCanvas, Group, Line, Text } from "fabric";
 import axios from "axios";
-import { ExtendedGroup, Song } from "@/types/types";
+import { TrackWithId } from "@/types/types";
 import Modal from "./Modal";
 import { spotifyApi } from "@/utils/spotifyApi";
+import Stepper from "./Stepper";
+import { AppDispatch, useAppSelector } from "@/app/lib/store";
+import { useDispatch } from "react-redux";
+import { setSelectedTrack } from "@/app/lib/features/selected-track-slice";
+import { addAccessToken } from "@/app/lib/features/access_token-slice";
 
 function Canvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const dispatch = useDispatch<AppDispatch>();
     const [isModal, setIsModal] = useState(false);
-    const [selectedTrack, setSelectedTrack] = useState<Song | null>(null);
-    const [access_token, setAccess_token] = useState<string>();
 
-    const [dataset, setDataset] = useState<Song[]>([])
-
+    const [dataset, setDataset] = useState<TrackWithId[]>([])
+    // Максимальное и минимально допустимые радиусы круга
     const maxRadius = 60;
     const minRadius = 25;
-
+    // Значение quantity из Redux Store
+    const quantity = useAppSelector((state) => state.quantityReducer.value.quantity)
+    // Авторизация в Spotify для получения jwt токена
     const authorization = async () => {
         const response = await spotifyApi.post('', null, {
           params: {
@@ -25,25 +31,26 @@ function Canvas() {
               client_id: process.env.CLIENT_ID,
               client_secret: process.env.CLIENT_SECRET,
         }}) 
-        setAccess_token(response.data.access_token)
+        dispatch(addAccessToken(response.data.access_token))
         return response.data
     }
-
+    // Запрос к базе данных на получение треков
     useEffect(() => {
         const fetchData = async () => {
-            const response = await axios.get("http://localhost:3000/api/tracks?page=1")
-            const data: Song[] = response.data
+            const response = await axios.get(`http://localhost:3000/api/tracks?page=${quantity}`)
+            const data: TrackWithId[] = response.data
             setDataset(data)
         };
         
         fetchData();
         authorization();
-    }, [])
+    }, [quantity])
 
     useEffect(() => {
         if (canvasRef.current) {
+            // Инициализация Canvas
             const canvas = new FabricCanvas(canvasRef.current);
-
+            // Получение самого большого ранка из данных
             const allTimeRank = dataset.map(item => item.allTimeRank);
 
             const maxValue = Math.max(...allTimeRank.map(Math.abs));
@@ -53,6 +60,7 @@ function Canvas() {
             const circles = dataset.map((item, index) => {
                 const normalizedValue = (Math.abs(item.allTimeRank) - minValue) / (maxValue - minValue);
                 const radius = minRadius + normalizedValue * (maxRadius - minRadius);
+                // Генерация координат для Circle
                 const x = Math.random() * (canvas.width - radius * 3) + radius;
                 const y = Math.random() * (canvas.height - radius * 3) + radius;
 
@@ -74,13 +82,14 @@ function Canvas() {
                     }
                 )
 
-                
+                // Объединение Circle с Text
                 const group = new Group([circle, text], {
                     left: x,
                     top: y,
                 })
-
+                // Удаление краев
                 group.hasControls = group.hasBorders = false;
+                // Добавление объектов в Canvas
                 canvas.add(group);
 
                 return { group, color: item.categoryColor, radius: radius }
@@ -99,7 +108,7 @@ function Canvas() {
                 canvas.bringObjectToFront(circle.group)
                 // при нажатии на круг открыть модальное окно с информацией о треке
                 circle.group.on('mousedown', () => {
-                    setSelectedTrack(dataset[index]);
+                    dispatch(setSelectedTrack(dataset[index]))
                     setIsModal(true);
                 })
             })
@@ -132,10 +141,11 @@ function Canvas() {
     
     return (
         <>
-            <canvas ref={canvasRef} width={1920} height={900}/>
-            {isModal && selectedTrack && (
-                <Modal acess_token={access_token} track={selectedTrack} onClose={() => setIsModal(false)}/>
+            <canvas ref={canvasRef} width={1920} height={900} />
+            {isModal && (
+                <Modal onClose={() => setIsModal(false)}/>
             )}
+            <Stepper />
         </>
     )
 }

@@ -4,6 +4,14 @@ import { NextRequest, NextResponse } from "next/server"
 export const GET = async (req: NextRequest, { params }: { params: { id: string } }) => {
     try {   
         const { id } = params;
+
+        const url  = req.nextUrl;
+        const pageParam = url.searchParams.get('page');
+
+        if (!pageParam) {
+            return new NextResponse(JSON.stringify("Please specify page parameter"))
+        }
+
         const track = await prisma.popularSongs.findUnique({
             where: {
                 id: id
@@ -15,10 +23,13 @@ export const GET = async (req: NextRequest, { params }: { params: { id: string }
         
         const recommendation = await prisma.popularSongs.findMany({
             where: {
+                id: {
+                    not: id
+                },
                 categoryColor: track.categoryColor,
                 categoryNodeColor: track.categoryNodeColor
             },
-            take: 10
+            take: 10 * parseInt(pageParam, 10)
         })
 
         return new NextResponse(JSON.stringify(recommendation), { status: 200 })

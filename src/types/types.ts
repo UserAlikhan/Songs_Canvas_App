@@ -30,6 +30,8 @@ export type Song = {
     categoryNodeColor: string
 }
 
+export type TrackWithId = Song & { id: string };
+
 export interface ExtendedGroup extends Group {
     radius: number
 }

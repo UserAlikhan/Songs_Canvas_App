@@ -1,9 +1,16 @@
+// Скрипт для расчета сходства, используется метрика Косинусного Сходства
 import fs from 'fs'
 import csv from 'csv-parser'
 import { kmeans } from 'ml-kmeans'
 import { PrismaClient } from "@prisma/client";
+// import { readCSV } from '@/utils/readCSV';
+// import { calculateSimilarity } from '@/utils/calculateSimilarity';
+// import { categorizeSongs } from '@/utils/categorizeSongs';
+// import { Song } from '@/types/types';
+// import { saveSongs } from '@/utils/db';
+// import { combineArrays } from '@/utils/combineArrays';
 
-
+// Ожидаемый тип
 export type Song = {
     track: string,
     albumName: string,
@@ -33,9 +40,9 @@ export type Song = {
     categoryColor: string,
     categoryNodeColor: string
 }
-
+// Экземпляр класса PrismaClient
 const prisma = new PrismaClient()
-
+// Функция для чтения CSV файла
 async function readCSV(filePath: string): Promise<any[]> {
     const results: any[] = [];
 
@@ -47,7 +54,7 @@ async function readCSV(filePath: string): Promise<any[]> {
             .on('error', (error) => reject(error))
         })
 }
-
+// Функция для вычисление Косинусного Сходства
 export function calculateSimilarity(song1: any, song2: any) {
     const features1 = Object.values(song1).map(Number);
     const features2 = Object.values(song2).map(Number);
@@ -64,7 +71,7 @@ export function calculateSimilarity(song1: any, song2: any) {
 
     return similarity;
 }
-
+// Функция для категаризации треков
 function categorizeSongs(songs: any[], similarities: any[]) {
     const threshold = 0.8
     const groups: any[][] = [];
@@ -113,31 +120,20 @@ function categorizeSongs(songs: any[], similarities: any[]) {
         });
     })
 
-    console.log('groups ', groups)
-
     const categorizedSongs = groups.flat()
-    console.log('categorizedSongs ', categorizedSongs)
-    console.log('categorizedSongs.length ', categorizedSongs.length)
     return categorizedSongs
 }
-
-function clusterSongs(songs: any[], k: number) {
-    const vectors = songs.map(song => Object.values(song).map(Number));
-    const clusters = kmeans(vectors, k, { initialization: 'random' })
-    return clusters;
-}
-
+// Функция для объядинения двух массивов
 function combineArrays(array1: any[], array2: any[]): Song[] {
     if (array1.length !== array2.length) {
         throw new Error('Both arrays must have the same length');
     }
     return array1.map((item, index) => ({ ...item, ...array2[index] }));
 }
-
+// Функция для сохранения данных в базу данных
 async function saveSongs(songs: any[]) {
     for (const song of songs) {
-        console.log('song ', song)
-        console.log('track ', song.tiktokPosts)
+
       await prisma.popularSongs.create({
         data: {
           track: song.track,
@@ -170,52 +166,30 @@ async function saveSongs(songs: any[]) {
         },
       });
     }
-  }
-
+}
+// Главная функция для запуска скрипта
 async function runAll() {
     try {
-        const filePath: string = 'C:/Code/spotify-next-app/src/data/dt.csv'
-        const filePathCategories: string = 'C:/Code/spotify-next-app/src/data/dc.csv'
+        const filePath: string = 'C:/Code/spotify-next-app/src/data/dt_cropped.csv'
+        const filePathCategories: string = 'C:/Code/spotify-next-app/src/data/dc_cropped.csv'
 
         const songs = await readCSV(filePath)
         const categories = await readCSV(filePathCategories)
 
-        console.log(songs)
-        console.log('categories ', categories)
         const similarities: any= []
         for (let i = 0; i < songs.length; i++) {
             for (let j = i + 1; j < songs.length; j++) {
                 const similarity = calculateSimilarity(songs[i], songs[j])
-                // console.log('similarity ', similarity)
                 similarities.push({ song1: songs[i], song2: songs[j], value: similarity })
             }
         }
         
-        console.log('SIMILARITIES FINAL ', similarities)
-
         const categorizedSongs = categorizeSongs(songs, similarities)
-        console.log('categorizedSongs ', categorizedSongs)
 
         const classterizedDataset: Song[] = combineArrays(categories, categorizedSongs)
-        console.log('classterizedDataset ', classterizedDataset[0])
-
-        await saveSongs(classterizedDataset)
-
-        // const clusters = clusterSongs(songs, 5)
-        // console.log('clusters ', clusters)
-        // const colors = ['Green', 'Blue', 'Yellow', 'Purple', 'Pink']
-        // const nodeColors = ['Red', 'Orange', "Black", "Yellow", "Green"]
-
-        // for (let i = 0; i < songs.length; i++) {
-        //     const song = songs[i];
-        //     const cluster = clusters.clusters[i];
-        //     song.categoryColor = colors[cluster];
-        //     song.categoryNodeColor = nodeColors[cluster];
-        // }
-        // const classterizedDataset: Song[] = combineArrays(categories, songs)
-        // console.log('classterizedDataset ', classterizedDataset[0])
 
         // await saveSongs(classterizedDataset)
+        
     } catch (error) {
         console.error('Error processing data:', error)
     }
