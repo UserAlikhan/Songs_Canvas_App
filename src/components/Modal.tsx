@@ -37,7 +37,7 @@ function Modal({ onClose }: {  onClose: () => void }) {
 
     useEffect(() => {
         getTrack();
-    }, [getTrack])
+    }, [])
     
     return (
         <div className="fixed inset-0 z-10 overflow-y-auto">

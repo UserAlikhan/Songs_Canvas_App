@@ -45,7 +45,7 @@ function Canvas() {
         
         fetchData();
         authorization();
-    }, [quantity, authorization])
+    }, [quantity])
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -191,7 +191,7 @@ function Canvas() {
                 canvas.dispose();
             }
         }
-    }, [dataset, dispatch])
+    }, [dataset])
     
     return (
         <>

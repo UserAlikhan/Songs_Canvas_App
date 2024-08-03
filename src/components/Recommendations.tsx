@@ -18,7 +18,7 @@ function Recommendations({ id }: { id: string }) {
 
     useEffect(() => {
         findSimilarSongs();
-    }, [page, findSimilarSongs]);
+    }, [page]);
 
     return (
         <div className="flex flex-row h-[260px] overflow-x-scroll">
