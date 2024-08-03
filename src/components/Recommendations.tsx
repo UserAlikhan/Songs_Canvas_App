@@ -8,7 +8,7 @@ function Recommendations({ id }: { id: string }) {
     const [page, setPage] = useState(1);
 
     const findSimilarSongs = async () => {
-        const response = await axios.get(`http://localhost:3000/api/tracks/recommendations/${id}?page=${page}`)
+        const response = await axios.get(`https://useralikhan-github-io.vercel.app/api/tracks/recommendations/${id}?page=${page}`)
         
         if (response.data) {
             setRecommedationsList(response.data)
