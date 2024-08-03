@@ -1,8 +1,10 @@
-// Модальное окно
+"use client"
+
 import axios from 'axios';
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Recommendations from './Recommendations';
 import { useAppSelector } from '@/app/lib/store';
+import Link from 'next/link';
 
 function Modal({ onClose }: {  onClose: () => void }) {
     // Получение значение access_token и track из Redux Store
@@ -54,20 +56,20 @@ function Modal({ onClose }: {  onClose: () => void }) {
                             {trackInfo && trackInfo.album.images[0].url && (
                                 <img src={trackInfo.album.images[0].url} alt={track.track} className="w-[85px] h-[85px] rounded-md mr-4"/>
                             )}
-                            <div className=' flex flex-col justify-between w-full'>
-                                <h3 className="text-xl leading-6 items-center text-center font-bold uppercase mb-3 text-gray-900" id="modal-headline">
-                                    {track.track}
-                                </h3>
-                                <h3 className="text-base leading-6 items-center text-center text-gray-500" id="modal-headline">
+                            <div className=' flex flex-col justify-between'>
+                                {trackInfo && trackInfo.external_urls.spotify && (
+                                    <Link className=' justify-center items-center' href={trackInfo.external_urls.spotify} target="_blank">
+                                        <h3 className="text-xl leading-6 self-center text-center font-bold uppercase mb-2 px-4 text-gray-900" id="modal-headline">
+                                            {track.track}
+                                        </h3>
+                                    </Link>
+                                )}
+                                {/* <h3 className="text-base leading-6 items-center text-center text-gray-500" id="modal-headline">
                                     Album Name: {track.albumName}
                                 </h3>
                                 <h3 className="text-base leading-6 items-center text-center text-gray-500" id="modal-headline">
                                     Artist: {track.artist}
-                                </h3>
-                                <div className=' flex flex-row w-full justify-between px-2'>
-                                    <p>Spotify Popularity: {Math.abs(track.spotifyPopularity.toFixed(2))}</p>
-                                    <p>Views: {Math.abs(track.youtubeViews.toFixed(2))} billion</p>
-                                </div>
+                                </h3> */}
 
                                 {trackInfo && trackInfo.album && trackInfo.artists && (
                                     <div className=' items-start justify-between'>
@@ -79,6 +81,11 @@ function Modal({ onClose }: {  onClose: () => void }) {
                                         </p>
                                     </div>
                                 )}
+
+                                <div className=' flex flex-row justify-between'>
+                                    <p>Spotify Popularity: {Math.abs(track.spotifyPopularity.toFixed(2))} | </p>
+                                    <p className=' mb-1'> Views: {Math.abs(track.youtubeViews.toFixed(2))} billion</p>
+                                </div>
                             </div>
                         </div>
                             
