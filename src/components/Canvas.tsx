@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Circle, Canvas as FabricCanvas, Group, Line, Text } from "fabric";
+import { Circle, Canvas as FabricCanvas, Group, Line, Point, Text } from "fabric";
 import axios from "axios";
 import { TrackWithId } from "@/types/types";
 import Modal from "./Modal";
@@ -16,8 +16,10 @@ function Canvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const dispatch = useDispatch<AppDispatch>();
     const [isModal, setIsModal] = useState(false);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
     const [dataset, setDataset] = useState<TrackWithId[]>([])
+    const [tooltip, setTooltip] = useState({ visible: false, text: '', x: 0, y: 0 });
     // Максимальное и минимально допустимые радиусы круга
     const maxRadius = 60;
     const minRadius = 25;
@@ -50,11 +52,46 @@ function Canvas() {
         if (canvasRef.current) {
             // Инициализация Canvas
             const canvas = new FabricCanvas(canvasRef.current);
+            canvas.allowTouchScrolling = true;
             // Получение самого большого ранка из данных
             const allTimeRank = dataset.map(item => item.allTimeRank);
 
             const maxValue = Math.max(...allTimeRank.map(Math.abs));
             const minValue = Math.min(...allTimeRank.map(Math.abs));
+
+            let isPanning = false;
+            let lastMouseX = 0;
+            let lastMouseY = 0;
+            // выставления координат мыши при клике и разрешение прокрутки
+            canvas.on('mouse:down', (event: any) => {
+                isPanning = true;
+                lastMouseX = event.e.clientX;
+                lastMouseY = event.e.clientY;
+            });
+            // функционал передвижения по canvas
+            canvas.on('mouse:move', (event: any) => {
+                if (isPanning) {
+                    const deltaX = event.e.clientX - lastMouseX;
+                    const deltaY = event.e.clientY - lastMouseY;
+                    canvas.relativePan({ x: deltaX, y: deltaY });
+                    lastMouseX = event.e.clientX;
+                    lastMouseY = event.e.clientY;
+                }
+            });
+            // при отпускании мыши запрет на прокрутку
+            canvas.on('mouse:up', () => {
+                isPanning = false;
+            });
+            // скрол
+            canvas.on('mouse:wheel', (event) => {
+                const delta = event.e.deltaY;
+                const zoom = canvas.getZoom();
+                const zoomPoint = new Point(event.e.offsetX, event.e.offsetY);
+                const newZoom = zoom * (1 - delta / 200);
+                canvas.zoomToPoint(zoomPoint, newZoom);
+                event.e.preventDefault();
+                event.e.stopPropagation();
+            });
 
             // Круги с названием трека внутри
             const circles = dataset.map((item, index) => {
@@ -86,6 +123,7 @@ function Canvas() {
                 const group = new Group([circle, text], {
                     left: x,
                     top: y,
+                    zIndex: 100
                 })
                 // Удаление краев
                 group.hasControls = group.hasBorders = false;
@@ -98,18 +136,29 @@ function Canvas() {
             // Объядиняем круги с одинаковым цветом
             const colorMap = new Map<string, any[]>();
 
-            circles.forEach((circle, index) => {
+            circles.forEach((circle, index) => {                
                 if (!colorMap.has(circle.color)) {
                     colorMap.set(circle.color, [])
                 }
                 colorMap.get(circle.color)?.push({...circle.group, radius: circle.radius, categoryNodeColor: dataset[index].categoryNodeColor})
 
-                canvas.bringObjectForward(circle.group)
-                canvas.bringObjectToFront(circle.group)
                 // при нажатии на круг открыть модальное окно с информацией о треке
                 circle.group.on('mousedown', () => {
                     dispatch(setSelectedTrack(dataset[index]))
                     setIsModal(true);
+                })
+
+                circle.group.on('mouseover', function(e) {
+                    const { left, top } = circle.group.getBoundingRect()
+                    setTooltip({ 
+                        visible: true, 
+                        text: `Track: ${dataset[index].track}. Click To Get More Information`, 
+                        x: left, y: top 
+                    })
+                })
+
+                circle.group.on('mouseout', function(e) {
+                    setTooltip({ visible: false, text: '', x: 0, y: 0 })
                 })
             })
             
@@ -126,9 +175,13 @@ function Canvas() {
                                 stroke: circle1.categoryNodeColor,
                                 strokeWidth: 7,
                                 selectable: false,
+                                zIndex: 1
                             }
                         )
                         canvas.add(line);
+                        // Круги над линиями
+                        canvas._objects.sort((a, b) => (a.zIndex > b.zIndex) ? 1 : -1);
+                        canvas.renderAll();
                     }
                 })
             })
@@ -142,6 +195,18 @@ function Canvas() {
     return (
         <>
             <canvas ref={canvasRef} width={1920} height={900} />
+            {tooltip.visible && (
+                <div style={{
+                    position: 'absolute',
+                    left: tooltip.x,
+                    top: tooltip.y,
+                    background: 'white',
+                    padding: '5px',
+                    border: '1px solid black'
+                }}>
+                    {tooltip.text}
+                </div>
+            )}
             {isModal && (
                 <Modal onClose={() => setIsModal(false)}/>
             )}

@@ -54,10 +54,20 @@ function Modal({ onClose }: {  onClose: () => void }) {
                             {trackInfo && trackInfo.album.images[0].url && (
                                 <img src={trackInfo.album.images[0].url} alt={track.track} className="w-[85px] h-[85px] rounded-md mr-4"/>
                             )}
-                            <div className=' flex flex-col justify-between'>
-                                <h3 className="text-xl leading-6 items-center font-bold uppercase text-gray-900" id="modal-headline">
+                            <div className=' flex flex-col justify-between w-full'>
+                                <h3 className="text-xl leading-6 items-center text-center font-bold uppercase mb-3 text-gray-900" id="modal-headline">
                                     {track.track}
                                 </h3>
+                                <h3 className="text-base leading-6 items-center text-center text-gray-500" id="modal-headline">
+                                    Album Name: {track.albumName}
+                                </h3>
+                                <h3 className="text-base leading-6 items-center text-center text-gray-500" id="modal-headline">
+                                    Artist: {track.artist}
+                                </h3>
+                                <div className=' flex flex-row w-full justify-between px-2'>
+                                    <p>Spotify Popularity: {Math.abs(track.spotifyPopularity.toFixed(2))}</p>
+                                    <p>Views: {Math.abs(track.youtubeViews.toFixed(2))} billion</p>
+                                </div>
 
                                 {trackInfo && trackInfo.album && trackInfo.artists && (
                                     <div className=' items-start justify-between'>
