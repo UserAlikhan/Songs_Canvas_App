@@ -29,8 +29,8 @@ function Canvas() {
         const response = await spotifyApi.post('', null, {
           params: {
               grant_type: 'client_credentials',
-              client_id: process.env.CLIENT_ID,
-              client_secret: process.env.CLIENT_SECRET,
+              client_id: "f6eb6273375a40318e5566dad0aa73a9",
+              client_secret: "59c1ea5b2eb349f09dacfc71a85c02fa",
         }}) 
         dispatch(addAccessToken({ access_token: response.data.access_token }))
         return response.data
