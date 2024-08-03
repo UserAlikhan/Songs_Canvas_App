@@ -31,7 +31,7 @@ function Recommendations({ id }: { id: string }) {
                             <span className=' font-bold'>Artist:</span> {recommendation.artist}
                         </p>
                         <p className="text-sm">
-                            <span className=' font-bold'>Spotify Popularity:</span> {Math.abs(recommendation.spotifyPopularity.toFixed(2))}
+                            <span className=' font-bold'>Spotify Popularity:</span> {Math.abs(recommendation.spotifyPopularity).toFixed(2)}
                         </p>
                         <p className="text-sm">
                             <span className=' font-bold'>YouTube Views:</span> {Math.abs(recommendation.youtubeViews)}

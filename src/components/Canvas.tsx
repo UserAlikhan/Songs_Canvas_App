@@ -16,7 +16,6 @@ function Canvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const dispatch = useDispatch<AppDispatch>();
     const [isModal, setIsModal] = useState(false);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
     const [dataset, setDataset] = useState<TrackWithId[]>([])
     const [tooltip, setTooltip] = useState({ visible: false, text: '', x: 0, y: 0 });
@@ -71,9 +70,11 @@ function Canvas() {
             // функционал передвижения по canvas
             canvas.on('mouse:move', (event: any) => {
                 if (isPanning) {
-                    const deltaX = event.e.clientX - lastMouseX;
-                    const deltaY = event.e.clientY - lastMouseY;
-                    canvas.relativePan({ x: deltaX, y: deltaY });
+                    const deltaX: number = event.e.clientX - lastMouseX;
+                    const deltaY: number = event.e.clientY - lastMouseY;
+                    const delta = new Point(deltaX, deltaY);
+
+                    canvas.relativePan(delta);
                     lastMouseX = event.e.clientX;
                     lastMouseY = event.e.clientY;
                 }
@@ -123,8 +124,8 @@ function Canvas() {
                 const group = new Group([circle, text], {
                     left: x,
                     top: y,
-                    zIndex: 100
-                })
+                });
+                group.set('zIndex', 100);
                 // Удаление краев
                 group.hasControls = group.hasBorders = false;
                 // Добавление объектов в Canvas
@@ -180,7 +181,7 @@ function Canvas() {
                         )
                         canvas.add(line);
                         // Круги над линиями
-                        canvas._objects.sort((a, b) => (a.zIndex > b.zIndex) ? 1 : -1);
+                        canvas._objects.sort((a: any, b: any) => (a.zIndex > b.zIndex) ? 1 : -1);
                         canvas.renderAll();
                     }
                 })

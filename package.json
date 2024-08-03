@@ -27,6 +27,7 @@
   },
   "type": "module",
   "devDependencies": {
+    "@types/fabric": "^5.3.8",
     "@types/node": "^20",
     "@types/node-kmeans": "^1.1.2",
     "@types/react": "^18",

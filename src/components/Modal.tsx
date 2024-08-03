@@ -83,8 +83,8 @@ function Modal({ onClose }: {  onClose: () => void }) {
                                 )}
 
                                 <div className=' flex flex-row justify-between'>
-                                    <p>Spotify Popularity: {Math.abs(track.spotifyPopularity.toFixed(2))} | </p>
-                                    <p className=' mb-1'> Views: {Math.abs(track.youtubeViews.toFixed(2))} billion</p>
+                                    <p>Spotify Popularity: {Math.abs(track.spotifyPopularity).toFixed(2)} | </p>
+                                    <p className=' mb-1'> Views: {Math.abs(track.youtubeViews).toFixed(2)} billion</p>
                                 </div>
                             </div>
                         </div>
