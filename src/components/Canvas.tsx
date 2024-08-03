@@ -38,7 +38,7 @@ function Canvas() {
     // Запрос к базе данных на получение треков
     useEffect(() => {
         const fetchData = async () => {
-            const response = await axios.get(`http://localhost:3000/api/tracks?page=${quantity}`)
+            const response = await axios.get(`https://useralikhan-github-io.vercel.app/api/tracks?page=${quantity}`)
             const data: TrackWithId[] = response.data
             setDataset(data)
         };
